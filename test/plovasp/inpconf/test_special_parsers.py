@@ -60,11 +60,12 @@ class TestParseStringIonList(arraytest.ArrayTestCase):
 
     Scenarios:
 
-    - **if** par_str == '5 6 7 8' **return** array([4, 5, 6, 7])
+    - **if** par_str == '5 6 7 8' **return** 'ions' with ion_list = [[4], [5], [6], [7]]
     - **if** par_str == 'Ni' **raise** NotImplementedError
     - **if** par_str == '0 1' **raise** AssertionError
-    - **if** par_str == '5..8' **return** array([4, 5, 6, 7])
+    - **if** par_str == '5..8' **return** 'ions' with ion_list = [[4], [5], [6], [7]]
     - **if** par_str == '8..5' **raise** AssertionError
+    - **if** par_str == '[5, 8] [6 7]' **return** 'ions' with ion_list = [[4, 7], [5, 6]]
     """
     def setUp(self):
         """
@@ -74,9 +75,9 @@ class TestParseStringIonList(arraytest.ArrayTestCase):
 
 # Scenario 1
     def test_simple_list(self):
-        expected = np.array([4, 5, 6, 7])
+        expected = {'nion': 4, 'ion_list': [[4], [5], [6], [7]]}
         res = self.cpars.parse_string_ion_list('5 6 7 8')
-        self.assertEqual(res, expected)
+        self.assertDictEqual(res, expected)
 
 # Scenario 2
     def test_atomic_symbol(self):
@@ -91,15 +92,21 @@ class TestParseStringIonList(arraytest.ArrayTestCase):
 
 # Scenario 4
     def test_list_range(self):
-        expected = np.array([4, 5, 6, 7])
+        expected = {'nion': 4, 'ion_list': [[4], [5], [6], [7]]}
         res = self.cpars.parse_string_ion_list('5..8')
-        self.assertEqual(res, expected)
+        self.assertDictEqual(res, expected)
 
 # Scenario 5
     def test_range_wrong_order(self):
         err_mess = "First index of the range"
         with self.assertRaisesRegexp(AssertionError, err_mess):
             self.cpars.parse_string_ion_list('8..5')
+
+# Scenario 6
+    def test_eq_classes(self):
+        expected = {'nion': 4, 'ion_list': [[4, 7], [5, 6]]}
+        res = self.cpars.parse_string_ion_list('[5, 8] [6 7]')
+        self.assertDictEqual(res, expected)
 
 
 ################################################################################
@@ -135,7 +142,7 @@ class TestParseStringTmatrix(arraytest.ArrayTestCase):
         err_mess = "Number of columns"
         with self.assertRaisesRegexp(AssertionError, err_mess):
             self.cpars.parse_string_tmatrix(par_str, real=True)
- 
+
 # Scenario 2
     def test_complex_matrix_odd(self):
         par_str = "1.0 0.0 2.0 1.0 0.0\n0.0 1.0 2.0 3.0 -1.0"
@@ -293,4 +300,8 @@ class TestParseStringDosmesh(arraytest.ArrayTestCase):
         with self.assertRaises(ValueError):
             self.cpars.parse_string_dosmesh('8.0')
 
+
+if __name__ == '__main__':
+    import unittest
+    unittest.main(verbosity=2, buffer=False)
 
